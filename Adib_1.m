@@ -1,5 +1,5 @@
 %---------------Geomagnetic data analysis--------------------------------------------------------------------------
-
+% Test 
 %Data concatenation
 
 if multyrs=='YES'     %Vertical concatenation for data of multiple years
