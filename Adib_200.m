@@ -11,13 +11,13 @@ clc; close all; clearvars -except EQ_intrst;
 load VARIABLES_WORLD
 open EQ_intrst
 %% Customization
-EQ_num=43;          %Select earthquake of interest as listed in EQ_intrst #
+EQ_num=22;          %Select earthquake of interest as listed in EQ_intrst #
 
 mag_min=5.0;        %Minimum magnitude of earthquakes to be considered
 dis_max=300;        %Maximum epicentral distance from the station
 depth_max=200;
 
-LT_sel=1;
+LT_sel=3;
 LT_start=[22,23,00,01,02]; LT_start=LT_start(LT_sel);
 LT_end=  [02,03,04,05,06]; LT_end=LT_end(LT_sel);
 
@@ -71,25 +71,22 @@ for i=1:3
     j=j+1;
 end
 %% Loading files
-filepathname=strcat('E:\Study\MAGDAS DATA\',stn,'\',stn,string(year_vec(:)),'S.mat');
+filepathname=fullfile('E:\Study\MAGDAS data\',stn,'\',stn) + string(year_vec(:)) + 'S.mat';
 
 if numel(year_vec)==1
-    matname=strcat(stn,string(year_vec(1)),'S');
-    load(matname);
+    load(filepathname);
 end
 
 if numel(year_vec)==2
-    matname(1)=strcat(stn,string(year_vec(1)),'S');
-    matname(2)=strcat(stn,string(year_vec(2)),'S');
-    if exist(filepathname(1),'file')==2 && exist(filepathname(2),'file')==2
-        A=load(matname(1));
-        B=load(matname(2));
-    elseif exist(filepathname(1),'file')==2 && exist(filepathname(2),'file')==0
-        A=load(matname(1));
+    if exist(filepathname(1),'file') && exist(filepathname(2),'file')
+        A=load(filepathname(1));
+        B=load(filepathname(2));
+    elseif exist(filepathname(1),'file') && ~exist(filepathname(2),'file')
+        A=load(filepathname(1));
         B.UT1m=datenum(year_vec(2),01,01,00,00,00):1/86400:datenum(year_vec(2),12,31,23,59,59);
         B.H=NaN(numel(B.UT1m),1); B.D=NaN(numel(B.UT1m),1); B.Z=NaN(numel(B.UT1m),1); B.F=NaN(numel(B.UT1m),1);
-    elseif exist(filepathname(1),'file')==0 && exist(filepathname(2),'file')==2
-        B=load(matname(2));
+    elseif ~exist(filepathname(1),'file') && exist(filepathname(2),'file')
+        B=load(filepathname(2));
         A.UT1m=datenum(year_vec(1),01,01,00,00,00):1/86400:datenum(year_vec(1),12,31,23,59,59);
         A.H=NaN(numel(A.UT1m),1); A.D=NaN(numel(A.UT1m),1); A.Z=NaN(numel(A.UT1m),1); A.F=NaN(numel(A.UT1m),1);
     end
@@ -269,7 +266,7 @@ ap_daily=reshape(ap,[],days_num);
 Dst_daily=reshape(Dst,[],days_num);
 if remove_disturbed==1
     for i=1:days_num
-        if any(ap_daily(:,i)>50)||any(ap_daily(:,i)<-50)||any(Dst_daily(:,i)>50)||any(Dst_daily(:,i)<-50)
+        if any(ap_daily(:,i)>27)||any(ap_daily(:,i)<-30)
             H_night(:,i)=NaN;
             D_night(:,i)=NaN;
             Z_night(:,i)=NaN;
@@ -491,16 +488,16 @@ colpal=lines(3);
 sp1=subplot(4,1,1);
 hold on
 for k=1:days_num
-    if any(ap_daily(:,k)>50) || any(Dst_daily(:,k)<-50)
+    if any(ap_daily(:,k)>27) || any(Dst_daily(:,k)<-30)
         xpatch=[k-1 k k k-1];
         ypatch=[-1e+5 -1e+5 1e+5 1e+5];
         patch(xpatch,ypatch,'r','FaceAlpha',0.1,'EdgeAlpha',0,'HandleVisibility','off');
     end
 end
 plot(hourly_vec,Dst,'b')
-plot(hourly_vec,ones(length(hourly_vec),1)*(-50),'b--');
+plot(hourly_vec,ones(length(hourly_vec),1)*(-30),'b--');
 plot(hourly_vec,ap,'r')
-plot(hourly_vec,ones(length(hourly_vec),1)*(50),'r--');
+plot(hourly_vec,ones(length(hourly_vec),1)*(27),'r--');
     ylabel('Dst      ap'); ylim([min(Dst) max(ap)]);
 hold off
 yyaxis right
@@ -525,7 +522,7 @@ title('ap & Dst (left) and K_{LS} (right)')
 sp2=subplot(4,1,2);
 hold on
 for k=1:days_num
-    if any(ap_daily(:,k)>50) || any(Dst_daily(:,k)<-50)
+    if any(ap_daily(:,k)>27) || any(Dst_daily(:,k)<-30)
         xpatch=[k-1 k k k-1];
         ypatch=[-1e+5 -1e+5 1e+5 1e+5];
         patch(xpatch,ypatch,'r','FaceAlpha',0.1,'EdgeAlpha',0,'HandleVisibility','off');
@@ -546,7 +543,7 @@ title(sprintf('Z/G during %cLT=%02d-%02d (LT_{sel}=%d)',char(916),LT_start,LT_en
 sp3=subplot(4,1,3);
 hold on
 for k=1:days_num
-    if any(ap_daily(:,k)>50) || any(Dst_daily(:,k)<-50)
+    if any(ap_daily(:,k)>27) || any(Dst_daily(:,k)<-30)
         xpatch=[k-1 k k k-1];
         ypatch=[-1e+5 -1e+5 1e+5 1e+5];
         patch(xpatch,ypatch,'r','FaceAlpha',0.1,'EdgeAlpha',0,'HandleVisibility','off');
