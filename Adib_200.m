@@ -9,16 +9,15 @@
 %% Load initial variable
 clc; close all; clearvars -except EQ_intrst;
 load VARIABLES_WORLD
-load StudiedStn
+load('D:\OneDrive - Universiti Kebangsaan Malaysia\Penerbitan\Universe --Entropy 2020\Processed data\EQ 2000-2020.mat')
 open EQ_intrst
-%% Customization
-EQ_num=22;          %Select earthquake of interest as listed in EQ_intrst #
-
-mag_min=5.0;        %Minimum magnitude of earthquakes to be considered
-dis_max=300;        %Maximum epicentral distance from the station
-depth_max=200;
-
-LT_sel=3;
+%% 
+StudiedStn = string(StudiedStn);
+for iStn = numel(StudiedStn)
+    for iYear = 2007:2016
+    for iLT = 1:5
+        for iFreq = 1:9
+    
 LT_start=[22,23,00,01,02]; LT_start=LT_start(LT_sel);
 LT_end=  [02,03,04,05,06]; LT_end=LT_end(LT_sel);
 
@@ -29,12 +28,6 @@ k_Thres=7; N_medfil=1;  k_repeat=4;       %Noise removal parameters
 k_alpha=3.5;                              %Minimal SNR coefficient
             
 normalize_ZG=1;                           %1 to normalize ZG
-
-%Frequency range to use for bandpass filter for azimuth direction.
-%1=0.01-0.02,2=0.02-0.03...9=0.09-0.10 Hz. Can enter multiple values.
-f_prec=3;
-
-daysafter_prec=30;                  %Number of days to show upcoming earthquakes
 remove_disturbed=0;                 %Keep (0) or remove (1) data during disturbed days
 %% Place and date
 stn0=EQ_intrst{EQ_num,1}; stn=stn0(1:3);
