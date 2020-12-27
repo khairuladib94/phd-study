@@ -9,6 +9,7 @@
 %% Load initial variable
 clc; close all; clearvars -except EQ_intrst;
 load VARIABLES_WORLD
+load StudiedStn
 open EQ_intrst
 %% Customization
 EQ_num=22;          %Select earthquake of interest as listed in EQ_intrst #
