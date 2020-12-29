@@ -11,6 +11,7 @@ clc;
 close all;
 load VARIABLES_WORLD
 %%
+warning off
 UTC = datetime(EQ_WORLD(:, 1:6));
 [Lat, Lon, Depth, Mag]= deal(EQ_WORLD(:, 7), EQ_WORLD(:, 8), EQ_WORLD(:, 9), EQ_WORLD(:, 10));
 EQTab = table(UTC, Lat, Lon, Depth, Mag);
@@ -29,27 +30,33 @@ for iStn = 1:numel(StudiedStn)
     for iYear = 2007:2016
         disp(string(StudiedStn(iStn)) + string(iYear) + "...");
         filepathname=fullfile('E:\Study\MAGDAS data\',StudiedStn(iStn),'\',StudiedStn(iStn)) + string(iYear) + 'S.mat';
+        if iYear == 2009 && string(StudiedStn(iStn)) == "KTB", continue; end 
         clearvars H D Z F UT1m
+        tic
         if exist(filepathname,'file'), load(filepathname); else, continue; end
         UT1m = (datetime(UT1m, 'ConvertFrom', 'datenum'))';
         [G_dn, Z_dn] = preProcess(H, D, Z);
+        runtimeProgress('Timer', 'Task', 'Data loading & pre-processing');
         
         clearvars NonEQPeriods
-        date_start=datetime(iYear, 1, 1);
+        date_start=datetime(iYear, 1, 1) + 15;
         IsNextYear = false;
         i = 1;
+        tic
         while ~ IsNextYear
             date_end=date_start + 60;
-            IsEQInPeriod = date_start <= EQDateNearStn & date_end >= EQDateNearStn;
+            IsEQInPeriod = date_start - 15 <= EQDateNearStn & date_end + 45 >= EQDateNearStn;
             if all(~IsEQInPeriod)
                 NonEQPeriods(i, :) = [date_start, date_end];
                 date_start = date_end + 1;
                 i = i + 1;
             else
-                date_start = EQDateNearStn(find(IsEQInPeriod, 1, 'last')) + 1;
+                date_start = date_start + 1;
             end
             IsNextYear = year(date_start + 60) > iYear;
         end
+        runtimeProgress('Timer', 'Task', 'No EQ periods identification');
+        
         if ~ exist('NonEQPeriods', 'var') || isempty(NonEQPeriods), continue; end
         
         for iPeriod = 1:height(NonEQPeriods)
@@ -62,11 +69,15 @@ for iStn = 1:numel(StudiedStn)
             [ap_mean, Dst_mean] = deal(mean(ap_daily, 'omitnan'), mean(Dst_daily, 'omitnan'));
             for iLT = 1:5
                 [LTStart, LTEnd] = deal(LT_start(iLT), LT_end(iLT));
+                tic
                 [Z_night, G_night]  = extractNighttime(G_period, Z_period, UT1m_period, LTStart, LTEnd, stn_latlon);
-                
+                runtimeProgress('Timer', 'Task', 'Nighttime extraction');
+
                 start_date = NonEQPeriods(iPeriod, 1);
                 end_date = NonEQPeriods(iPeriod, 2);
+                tic
                 ZG = PRA(Z_night, G_night);
+                runtimeProgress('Timer', 'Task', 'PRA');
                 if sum(isnan(ZG(1,:))) > 15, GappedObs = true; end
                 if GappedObs, break; end
                 clearvars ZGAnom
@@ -74,6 +85,7 @@ for iStn = 1:numel(StudiedStn)
                     ZGAnom(iFreq, :) =  ZG(iFreq, :) > mean(ZG(iFreq, :), 'omitnan') + 2*std(ZG(iFreq, :), 'omitnan') & ...
                         ZG(iFreq, :) > 1.5 & ap_mean <= 27 & Dst_mean >= -30;
                 end
+                tic
                 ZGTab.Stn(PeriodCount:PeriodCount+8) = StudiedStn(iStn);
                 ZGTab.StartDate(PeriodCount:PeriodCount+8) = NonEQPeriods(iPeriod, 1);
                 ZGTab.EndDate(PeriodCount:PeriodCount+8) = NonEQPeriods(iPeriod, 2);
@@ -84,6 +96,7 @@ for iStn = 1:numel(StudiedStn)
                     ZGTab.AnomCount(PeriodCount+iFreq-1) = sum(ZGAnom(iFreq, :));
                 end
                 PeriodCount = PeriodCount + 9;
+                runtimeProgress('Timer', 'Task', 'Results stored');
             end
             
         end  
