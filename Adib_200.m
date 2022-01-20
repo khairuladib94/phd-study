@@ -1,4 +1,4 @@
-%% Purpose
+%% Purposes
 % Observe Pz/Pg in 9 frequency bands, e.g. 0.01 - 0.02, 0.02 - 0.03 .. 0.09
 % - 0.10 hz
 % Estimate angle using polarization ellipse method as used by Schekotov
